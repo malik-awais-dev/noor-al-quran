@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Read the Holy Quran online with beautiful Arabic text and translations in English, Urdu, French and more." />
+  <meta name="theme-color" content="#0f5132" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0e1613" media="(prefers-color-scheme: dark)" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Noor al-Quran — Read the Holy Quran" />
+  <meta property="og:description" content="Arabic text with clear translations. Simple, beautiful, made for everyone." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Icons + install -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Noor Quran" />
+
+  <title>Noor al-Quran — Read the Holy Quran</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a href="#main" class="visually-hidden">Skip to content</a>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="site" role="banner">
+  <div class="nav">
+    <div class="brand">
+      <a href="#/" aria-label="Home">
+        <div class="brand-mark" aria-hidden="true">ق</div>
+        <div class="brand-text">
+          Noor al-Quran
+          <small>Read the Holy Quran</small>
+        </div>
+      </a>
+    </div>
+
+    <div class="header-actions">
+      <button id="menuBtn" class="icon-btn" type="button"
+              aria-label="Open menu" aria-controls="drawer" aria-expanded="false" title="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="3" y1="6"  x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <button id="themeToggle" class="icon-btn" type="button"
+              aria-label="Switch to dark mode" aria-pressed="false" title="Toggle theme">
+        <!-- Sun icon (shown in light mode) -->
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <!-- Moon icon (shown in dark mode) -->
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     MAIN APP OUTLET — populated by JS
+     ============================================================ -->
+<main id="main" role="main"></main>
+
+<!-- ============================================================
+     RIGHT-SIDE DRAWER — bookmarks, jump-to, settings
+     ============================================================ -->
+<div id="drawerOverlay" class="drawer-overlay" hidden></div>
+<aside id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1">
+  <header class="drawer-head">
+    <h2 id="drawerTitle">Menu</h2>
+    <button id="drawerClose" class="icon-btn" type="button" aria-label="Close menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <div class="drawer-body">
+
+    <!-- Translation + Reciter -->
+    <section class="drawer-section">
+      <h3>Language & Voice</h3>
+
+      <label class="drawer-field">
+        <span>Translation</span>
+        <select id="translationSelect" class="select drawer-select" aria-label="Choose translation"></select>
+      </label>
+
+      <label class="drawer-field">
+        <span>Reciter</span>
+        <select id="reciterSelect" class="select drawer-select" aria-label="Choose reciter"></select>
+      </label>
+    </section>
+
+    <!-- Bookmarks + Continue reading -->
+    <section class="drawer-section">
+      <h3>Read</h3>
+
+      <a href="#/" class="drawer-link" id="drawerContinue" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12h20"/><polyline points="15 5 22 12 15 19"/>
+        </svg>
+        <span id="drawerContinueLabel">Continue reading</span>
+      </a>
+
+      <a href="#/bookmarks" class="drawer-link" id="drawerBookmarks" style="margin-top:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Bookmarks</span>
+        <span class="badge" id="bookmarkCount">0</span>
+      </a>
+
+      <button type="button" class="drawer-link" id="drawerRandom" style="margin-top:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+          <line x1="4" y1="4" x2="9" y2="9"/>
+        </svg>
+        <span>Random surah</span>
+      </button>
+
+      <div class="drawer-streak" id="drawerStreak" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2s3 4 3 8a3 3 0 0 1-6 0c0-1 .5-2 1-3 0 3 2 4 2 4s-2-6 0-9z"/>
+          <path d="M8 14a4 4 0 1 0 8 0c0-2-2-3-2-6 0 3-6 2-6 6z"/>
+        </svg>
+        <div>
+          <strong id="drawerStreakN">0-day streak</strong>
+          <small>Keep reading daily</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jump to Juz / Page -->
+    <section class="drawer-section">
+      <h3>Jump to</h3>
+
+      <label class="drawer-field">
+        <span>Juz</span>
+        <select id="jumpJuz" class="select drawer-select" aria-label="Jump to Juz"></select>
+      </label>
+
+      <label class="drawer-field">
+        <span>Page</span>
+        <div class="drawer-page-row">
+          <input id="jumpPage" type="number" min="1" max="604" placeholder="1–604" class="drawer-input" aria-label="Jump to page">
+          <button id="jumpPageGo" class="btn-inline" type="button">Go</button>
+        </div>
+      </label>
+    </section>
+
+    <!-- Reading Settings -->
+    <section class="drawer-section">
+      <h3>Reading</h3>
+
+      <label class="drawer-field">
+        <span>Arabic text size — <em id="fontSizeVal">32</em>px</span>
+        <input id="fontSizeSlider" type="range" min="22" max="46" step="1" class="drawer-range" aria-label="Arabic font size">
+      </label>
+
+      <label class="drawer-field drawer-check">
+        <input id="autoplayToggle" type="checkbox">
+        <span>Auto-play when opening a surah</span>
+      </label>
+
+      <button id="resetSettings" class="btn-secondary" type="button">Reset to defaults</button>
+    </section>
+
+    <section class="drawer-section">
+      <h3>Tools</h3>
+      <button type="button" class="drawer-link" id="drawerCmdK">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span>Quick jump…</span>
+        <span class="kbd-hint"><kbd>⌘</kbd><kbd>K</kbd></span>
+      </button>
+      <button type="button" class="drawer-link" id="drawerKbd" style="margin-top:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
+        </svg>
+        <span>Keyboard shortcuts</span>
+        <span class="kbd-hint"><kbd>?</kbd></span>
+      </button>
+    </section>
+
+  </div>
+</aside>
+
+<!-- ============================================================
+     FIXED AUDIO BAR — shown while a verse is loaded
+     ============================================================ -->
+<div id="audioBar" class="audio-bar" hidden aria-label="Audio player">
+  <div class="ab-info">
+    <div class="ab-title" id="abTitle">—</div>
+    <div class="ab-sub"   id="abSub">—</div>
+  </div>
+  <div class="ab-controls">
+    <button id="abPrev"  class="ab-btn" type="button" aria-label="Previous verse" title="Previous verse">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+    <button id="abPlay"  class="ab-btn ab-play" type="button" aria-label="Play or pause" title="Play / Pause">
+      <svg class="ab-icon-play" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+      <svg class="ab-icon-pause" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button id="abNext"  class="ab-btn" type="button" aria-label="Next verse" title="Next verse">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+    </button>
+  </div>
+  <div class="ab-extra">
+    <label class="visually-hidden" for="abSpeed">Speed</label>
+    <select id="abSpeed" class="ab-speed" aria-label="Playback speed">
+      <option value="0.5">0.5×</option>
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+    <button id="abClose" class="ab-btn" type="button" aria-label="Stop and close player" title="Close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     BOTTOM NAV — mobile only
+     ============================================================ -->
+<nav class="bottom-nav" aria-label="Primary" role="navigation">
+  <a href="#/" class="bn-item" data-nav="home">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-4v-8h-6v8H5a2 2 0 0 1-2-2z"/>
+    </svg>
+    <span>Home</span>
+  </a>
+  <a href="#/bookmarks" class="bn-item" data-nav="bookmarks">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span>Bookmarks</span>
+    <span class="bn-badge" id="bnBmCount" hidden>0</span>
+  </a>
+  <a href="#/" class="bn-item" id="bnContinue" data-nav="continue" hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M2 12h20"/><polyline points="15 5 22 12 15 19"/>
+    </svg>
+    <span>Resume</span>
+  </a>
+  <button class="bn-item" type="button" id="bnMenuBtn" data-nav="menu" aria-label="Open menu">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="3" y1="6"  x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+    <span>Menu</span>
+  </button>
+</nav>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="site">
+  <div>
+    Data from <a href="https://alquran.cloud/" target="_blank" rel="noopener">Al-Quran Cloud</a>.
+    Made with care.
+  </div>
+</footer>
+
+<!-- ============================================================
+     COMMAND PALETTE — Cmd/Ctrl+K
+     ============================================================ -->
+<div id="cmdpalOverlay" class="cmdpal-overlay" hidden></div>
+<div id="cmdpal" class="cmdpal" hidden role="dialog" aria-modal="true" aria-label="Quick jump">
+  <div class="cmdpal-search">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input id="cmdpalInput" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Jump to any surah, juz N, page N, or bookmarks…" aria-label="Quick jump search">
+    <kbd class="cmdpal-esc">Esc</kbd>
+  </div>
+  <ul id="cmdpalList" class="cmdpal-list" role="listbox" aria-label="Results"></ul>
+  <div class="cmdpal-foot">
+    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+    <span><kbd>Enter</kbd> open</span>
+    <span><kbd>Esc</kbd> close</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     KEYBOARD SHORTCUTS HELP
+     ============================================================ -->
+<div id="kbdOverlay" class="cmdpal-overlay" hidden></div>
+<div id="kbdHelp" class="kbdhelp" hidden role="dialog" aria-modal="true" aria-labelledby="kbdHelpTitle">
+  <header>
+    <h2 id="kbdHelpTitle">Keyboard shortcuts</h2>
+    <button type="button" id="kbdHelpClose" class="icon-btn" aria-label="Close shortcuts help">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </header>
+  <div class="kbdhelp-body">
+    <div class="kbdhelp-group">
+      <h3>Navigation</h3>
+      <dl>
+        <div><dt><kbd>⌘</kbd>+<kbd>K</kbd> <span class="or">or</span> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Quick jump (command palette)</dd></div>
+        <div><dt><kbd>/</kbd></dt><dd>Focus surah search on home</dd></div>
+        <div><dt><kbd>n</kbd> / <kbd>p</kbd></dt><dd>Next / previous surah</dd></div>
+        <div><dt><kbd>j</kbd> / <kbd>k</kbd></dt><dd>Next / previous verse</dd></div>
+        <div><dt><kbd>g</kbd> <kbd>h</kbd></dt><dd>Go home</dd></div>
+        <div><dt><kbd>g</kbd> <kbd>b</kbd></dt><dd>Go to bookmarks</dd></div>
+      </dl>
+    </div>
+    <div class="kbdhelp-group">
+      <h3>Reading</h3>
+      <dl>
+        <div><dt><kbd>Space</kbd></dt><dd>Play / pause audio</dd></div>
+        <div><dt><kbd>b</kbd></dt><dd>Bookmark current verse</dd></div>
+        <div><dt><kbd>s</kbd></dt><dd>Share current verse</dd></div>
+        <div><dt><kbd>d</kbd></dt><dd>Toggle dark mode</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>Open this help</dd></div>
+        <div><dt><kbd>Esc</kbd></dt><dd>Close any dialog</dd></div>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SHARE POPOVER — attached to a verse when triggered
+     ============================================================ -->
+<div id="sharePop" class="sharepop" hidden role="dialog" aria-modal="false" aria-label="Share verse">
+  <button type="button" class="sharepop-item" data-share="copy-text">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+    <span>Copy verse text</span>
+  </button>
+  <button type="button" class="sharepop-item" data-share="copy-link">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+    <span>Copy link</span>
+  </button>
+  <button type="button" class="sharepop-item" data-share="whatsapp">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.2L2 22l4.9-1.6a11 11 0 0 0 5.1 1.3h.01a11 11 0 0 0 8.48-18.2zM12 20.3a9.3 9.3 0 0 1-4.7-1.3l-.34-.2-2.9.9.94-2.83-.22-.36a9.3 9.3 0 1 1 7.22 3.79zm5.13-6.98c-.28-.14-1.66-.82-1.92-.92s-.44-.14-.63.14-.72.92-.88 1.1-.32.22-.6.08a7.63 7.63 0 0 1-2.24-1.38 8.4 8.4 0 0 1-1.55-1.93c-.16-.28 0-.42.13-.56.13-.13.28-.32.42-.48.14-.16.19-.28.28-.46.09-.19.05-.36-.02-.5s-.63-1.5-.86-2.06c-.23-.55-.46-.47-.63-.48h-.54c-.19 0-.5.07-.75.36s-1 .96-1 2.34.99 2.72 1.13 2.91c.14.18 2 3.05 4.86 4.27.68.29 1.2.47 1.62.6.68.22 1.3.19 1.79.11.54-.08 1.66-.68 1.9-1.34.24-.66.24-1.22.17-1.34-.07-.13-.26-.2-.54-.34z"/></svg>
+    <span>WhatsApp</span>
+  </button>
+  <button type="button" class="sharepop-item" data-share="twitter">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.53 7.463L22 22h-6.828l-4.77-6.24L4.8 22H2l7.02-8.02L2 2h6.914l4.322 5.71L18.244 2zm-1.196 18h1.83L7.088 4H5.13l11.918 16z"/></svg>
+    <span>Share on X</span>
+  </button>
+  <button type="button" class="sharepop-item" data-share="native" hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    <span>Share…</span>
+  </button>
+</div>
+
+<!-- Toast for copy/share confirmations -->
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
+<!-- ============================================================
+     JAVASCRIPT — all app logic
+     ============================================================ -->
+<script src="app.js" defer></script>
+
+</body>
+</html>

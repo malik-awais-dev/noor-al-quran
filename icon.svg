@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f5132"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#b58a3b" stroke-width="4" opacity=".45"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central"
+        font-family="'Amiri Quran','Amiri','Noto Naskh Arabic','Geeza Pro','Traditional Arabic',serif"
+        font-size="340" fill="#faf7f0" font-weight="700">ق</text>
+</svg>

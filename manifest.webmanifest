@@ -1,0 +1,24 @@
+{
+  "name": "Noor al-Quran — Read the Holy Quran",
+  "short_name": "Noor Quran",
+  "description": "Read the Holy Quran with beautiful Arabic text, translations in your language, and world-class recitations.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/noor-al-quran",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#faf7f0",
+  "theme_color": "#0f5132",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["books", "education", "lifestyle"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Bookmarks", "short_name": "Bookmarks", "url": "./#/bookmarks" },
+    { "name": "Al-Fatiha", "short_name": "Al-Fatiha", "url": "./#/surah/1" },
+    { "name": "Ayat al-Kursi", "short_name": "Ayat al-Kursi", "url": "./#/surah/2/verse/255" }
+  ]
+}
