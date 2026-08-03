@@ -1,0 +1,35 @@
+# Netlify configuration for Noor al-Quran
+# Static site — no build step, root publish.
+
+[build]
+  publish = "."
+
+# Service worker must not be aggressively cached (so users get updates quickly)
+# and must be served with an application/javascript content type + no scope restriction.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control       = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# Correct MIME for the web app manifest
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
+# Long-cache static assets
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/icon.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
