@@ -10,7 +10,7 @@
     ARABIC_EDITION: 'quran-uthmani',
     CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,  // 7 days
     CACHE_PREFIX: 'nq:',
-    DEFAULT_TRANSLATION: 'en.sahih',
+    DEFAULT_TRANSLATION: 'ur.junagarhi',
     DEFAULT_RECITER: 'ar.alafasy',
     JUZ_COUNT:  30,
     PAGE_COUNT: 604,
