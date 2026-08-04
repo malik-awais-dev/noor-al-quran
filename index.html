@@ -35,6 +35,45 @@
 <a href="#main" class="visually-hidden">Skip to content</a>
 
 <!-- ============================================================
+     INSTALL APP BANNER — shown when browser fires beforeinstallprompt
+     ============================================================ -->
+<div id="installBanner" class="install-banner" hidden role="region" aria-label="Install app">
+  <div class="install-banner-icon" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  </div>
+  <div class="install-banner-text">
+    <strong>Install Noor al-Quran</strong>
+    <small>Read offline, anywhere, anytime</small>
+  </div>
+  <div class="install-banner-actions">
+    <button type="button" class="install-btn" id="installAccept">Install</button>
+    <button type="button" class="install-dismiss" id="installDismiss" aria-label="Dismiss install prompt">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     OFFLINE DOWNLOAD PROGRESS — shown while pre-caching all surahs
+     ============================================================ -->
+<div id="offlineProgress" class="offline-progress" hidden role="status" aria-live="polite">
+  <div class="offline-progress-head">
+    <strong id="offlineProgressLabel">Downloading for offline…</strong>
+    <span id="offlineProgressPct">0%</span>
+  </div>
+  <div class="offline-progress-bar"><div id="offlineProgressFill"></div></div>
+  <small id="offlineProgressSub">This lets you read every surah without internet.</small>
+</div>
+
+<!-- ============================================================
      HEADER
      ============================================================ -->
 <header class="site" role="banner">
@@ -210,6 +249,16 @@
         </svg>
         <span>Quick jump…</span>
         <span class="kbd-hint"><kbd>⌘</kbd><kbd>K</kbd></span>
+      </button>
+      <button type="button" class="drawer-link" id="drawerOffline" style="margin-top:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span id="drawerOfflineLabel">Download for offline</span>
+        <span class="badge" id="drawerOfflineBadge" hidden>✓</span>
       </button>
       <button type="button" class="drawer-link" id="drawerKbd" style="margin-top:8px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"

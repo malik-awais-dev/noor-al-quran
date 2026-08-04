@@ -5,7 +5,7 @@
 //   - Google Fonts (CSS + font files): cache-first with runtime cache
 //   - Audio CDN: pass through (files are large; browser handles its own cache)
 
-const VERSION = 'nq-v2';
+const VERSION = 'nq-v3';
 const SHELL   = 'nq-shell-'   + VERSION;
 const RUNTIME = 'nq-runtime-' + VERSION;
 

@@ -1588,6 +1588,7 @@
     sel.addEventListener('change', (e) => {
       state.translation = e.target.value;
       localStorage.setItem('nq:translation', state.translation);
+      updateOfflineBadge();   // offline cache is per-translation
       // Re-render current view to show new translation
       render();
     });
@@ -1839,6 +1840,200 @@
   };
 
   // ==========================================================
+  // INSTALL PROMPT (PWA add-to-home-screen banner)
+  // ==========================================================
+  const Install = {
+    DISMISS_KEY: 'nq:installDismissed',   // ISO date user last dismissed
+    DISMISS_DAYS: 14,                     // hide banner this long after dismiss
+    _deferred: null,
+
+    init(){
+      // iOS Safari doesn't fire beforeinstallprompt. Show a manual prompt there.
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+      if (isStandalone) return;   // already installed — no banner ever
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this._deferred = e;
+        if (this._recentlyDismissed()) return;
+        this._showBanner(/*ios*/ false);
+      });
+
+      window.addEventListener('appinstalled', () => {
+        this._hideBanner();
+        Toast.show('Installed! Downloading for offline…');
+        // Trigger a full offline download so the installed app works with no network.
+        OfflineDownloader.run({ silent: false });
+      });
+
+      // iOS Safari fallback — show a "Add to Home Screen" hint after 3s if not dismissed.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      if (isIOS && isSafari && !this._recentlyDismissed()){
+        setTimeout(() => this._showBanner(/*ios*/ true), 3000);
+      }
+    },
+
+    _recentlyDismissed(){
+      const raw = localStorage.getItem(this.DISMISS_KEY);
+      if (!raw) return false;
+      const ago = (Date.now() - parseInt(raw, 10)) / (24 * 60 * 60 * 1000);
+      return ago < this.DISMISS_DAYS;
+    },
+
+    _showBanner(ios){
+      const banner = document.getElementById('installBanner');
+      if (!banner) return;
+      if (ios){
+        const text = banner.querySelector('.install-banner-text');
+        if (text){
+          text.innerHTML = '<strong>Install Noor al-Quran</strong>' +
+            '<small>Tap Share → Add to Home Screen</small>';
+        }
+        const accept = document.getElementById('installAccept');
+        if (accept) accept.hidden = true;   // no programmatic install on iOS
+      }
+      banner.hidden = false;
+      requestAnimationFrame(() => {
+        banner.classList.add('show');
+        document.body.classList.add('install-banner-open');
+      });
+      const accept  = document.getElementById('installAccept');
+      const dismiss = document.getElementById('installDismiss');
+      if (accept && !accept.__wired){
+        accept.__wired = true;
+        accept.addEventListener('click', () => this._accept());
+      }
+      if (dismiss && !dismiss.__wired){
+        dismiss.__wired = true;
+        dismiss.addEventListener('click', () => this._dismiss());
+      }
+    },
+
+    _hideBanner(){
+      const banner = document.getElementById('installBanner');
+      if (!banner) return;
+      banner.classList.remove('show');
+      document.body.classList.remove('install-banner-open');
+      setTimeout(() => { banner.hidden = true; }, 300);
+    },
+
+    async _accept(){
+      if (!this._deferred){
+        this._hideBanner();
+        return;
+      }
+      this._deferred.prompt();
+      try{
+        const choice = await this._deferred.userChoice;
+        this._deferred = null;
+        if (choice && choice.outcome === 'accepted'){
+          this._hideBanner();
+        } else {
+          this._dismiss();
+        }
+      } catch(_){ this._hideBanner(); }
+    },
+
+    _dismiss(){
+      localStorage.setItem(this.DISMISS_KEY, String(Date.now()));
+      this._hideBanner();
+    },
+  };
+
+  // ==========================================================
+  // OFFLINE DOWNLOADER
+  // Pre-fetches all 114 surahs in the current translation so the whole
+  // app works with zero network. Writes to both localStorage (via Cache)
+  // and the service-worker runtime cache (via a normal fetch that SW intercepts).
+  // ==========================================================
+  const OfflineDownloader = {
+    DONE_KEY: 'nq:offlineDone',   // stores the translation id that was fully cached
+
+    isDone(translationId){
+      return localStorage.getItem(this.DONE_KEY) === (translationId || state.translation);
+    },
+
+    async run({ silent = false } = {}){
+      const translationId = state.translation;
+      const total = 114;
+      const ui = silent ? null : this._openUI(total);
+
+      let done = 0, failed = 0;
+      const CONCURRENCY = 4;
+      const queue = Array.from({ length: total }, (_, i) => i + 1);
+
+      const worker = async () => {
+        while (queue.length){
+          const id = queue.shift();
+          if (id == null) return;
+          try{
+            // If already in localStorage cache we skip network; else fetch.
+            // Api.surahWithTranslation already handles the caching for us.
+            await Api.surahWithTranslation(id, translationId);
+          } catch(_){
+            failed++;
+          }
+          done++;
+          if (ui) ui.update(done, total);
+        }
+      };
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+      if (ui) ui.finish(failed);
+
+      if (failed === 0){
+        localStorage.setItem(this.DONE_KEY, translationId);
+        updateOfflineBadge();
+        if (!silent) Toast.show('Ready to read offline — all 114 surahs saved.');
+      } else if (!silent){
+        Toast.show(`Downloaded ${total - failed} of ${total}. Try again on better connection.`);
+      }
+    },
+
+    _openUI(total){
+      const box   = document.getElementById('offlineProgress');
+      const label = document.getElementById('offlineProgressLabel');
+      const pct   = document.getElementById('offlineProgressPct');
+      const fill  = document.getElementById('offlineProgressFill');
+      if (!box) return null;
+      box.hidden = false;
+      label.textContent = 'Downloading for offline…';
+      pct.textContent = '0%';
+      fill.style.width = '0%';
+      return {
+        update(done, total){
+          const p = Math.round((done / total) * 100);
+          pct.textContent = p + '%';
+          fill.style.width = p + '%';
+          label.textContent = `Downloading ${done} / ${total} surahs…`;
+        },
+        finish(failed){
+          label.textContent = failed === 0 ? 'All surahs saved for offline ✓' :
+                                             `Saved with ${failed} error(s)`;
+          setTimeout(() => { box.hidden = true; }, 2500);
+        },
+      };
+    },
+  };
+
+  function updateOfflineBadge(){
+    const badge = document.getElementById('drawerOfflineBadge');
+    const label = document.getElementById('drawerOfflineLabel');
+    if (!badge || !label) return;
+    if (OfflineDownloader.isDone()){
+      badge.hidden = false;
+      label.textContent = 'Saved for offline';
+    } else {
+      badge.hidden = true;
+      label.textContent = 'Download for offline';
+    }
+  }
+
+  // ==========================================================
   // BOOTSTRAP
   // ==========================================================
   Theme.init();
@@ -1861,6 +2056,16 @@
   if (drawerCmdK) drawerCmdK.addEventListener('click', () => { Drawer.close(); CommandPalette.open(); });
   const drawerKbd = document.getElementById('drawerKbd');
   if (drawerKbd) drawerKbd.addEventListener('click', () => { Drawer.close(); KbdHelp.open(); });
+  const drawerOffline = document.getElementById('drawerOffline');
+  if (drawerOffline) drawerOffline.addEventListener('click', () => {
+    Drawer.close();
+    if (OfflineDownloader.isDone()){
+      Toast.show('Already saved offline. Re-download will refresh.');
+    }
+    OfflineDownloader.run({ silent: false });
+  });
+  Install.init();
+  updateOfflineBadge();
 
   Router.init();
   render();
