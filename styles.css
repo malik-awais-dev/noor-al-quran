@@ -430,6 +430,7 @@
       background:var(--surface-2);
       color:var(--ink); text-decoration:none;
       transition:background .15s;
+        width:100%;
     }
     .drawer-link:hover{ background:var(--primary-soft); text-decoration:none; color:var(--primary); }
     .drawer-link .badge{
