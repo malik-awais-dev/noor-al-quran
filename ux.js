@@ -15,7 +15,8 @@
 //   muted, primary, primary-2, primary-soft, accent, border) in light AND dark mode.
 // Round 5b: legacy Round-4 ids (pink/purple/teal/blue/amber) migrate to the nearest
 //   Round-5 theme instead of falling back to Green; resume pill fits small screens;
-//   Indigo is the default theme for users with no saved palette.
+//   Indigo is the default theme for users with no saved palette; continue-card wraps
+//   neatly on mobile; surah-card meta trimmed to the verse count only.
 
 (function () {
   'use strict';
@@ -245,6 +246,7 @@
   // (progress bars, resume pill, streak dots, swatches) follows the active palette.
   // Resume pill is capped to viewport width with an ellipsis so long labels
   // ("Continue re-reading at verse 286") never break the layout on phones.
+  // Continue card wraps on mobile: icon + text on the first row, actions below.
   var CSS = [
     '.nq-ux-prog { margin-top: 6px; width: 100%; }',
     '.nq-ux-prog-bar {',
@@ -269,6 +271,10 @@
     '@media (max-width: 700px) {',
     '  .nq-ux-resume { font-size: 13px; padding: 8px 12px; gap: 8px; max-width: calc(100vw - 24px); }',
     '  .nq-ux-resume-x { font-size: 14px; }',
+    '  .continue-card { flex-wrap: wrap; gap: 10px 12px; padding: 14px 16px; }',
+    '  .continue-card .cr-body { flex: 1 1 calc(100% - 60px); }',
+    '  .continue-card .cr-actions { flex-basis: 100%; justify-content: flex-end; }',
+    '  .continue-card strong { font-size: 15px; }',
     '}',
     '.nq-ux-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle; pointer-events: none; }',
     '.nq-ux-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .18; }',
@@ -429,7 +435,22 @@
     }
   }
 
-  // ---------- 2) progress bars on home surah cards ----------
+  // ---------- 2) trim surah-card meta (Round 5b) ----------
+  // Home cards read "The Cattle · 165 verses · Meccan". Kept: number, English +
+  // Arabic names, verse count. Removed: translation meaning and revelation type.
+  // Progress bars (nq-ux-prog) are untouched.
+  function trimSurahMeta() {
+    var metas = document.querySelectorAll('.surah-card .surah-meta');
+    Array.prototype.forEach.call(metas, function (m) {
+      if (m.getAttribute('data-ux-trimmed')) return;
+      var mt = /(\d+)\s*verses/i.exec(m.textContent || '');
+      if (!mt) return;
+      m.textContent = mt[1] + ' verses';
+      m.setAttribute('data-ux-trimmed', '1');
+    });
+  }
+
+  // ---------- 3) progress bars on home surah cards ----------
   function decorateHomeCards() {
     var main = $('#main');
     if (!main) return;
@@ -472,7 +493,7 @@
     });
   }
 
-  // ---------- 3) resume pill ----------
+  // ---------- 4) resume pill ----------
   function pillHidden(id) {
     try { return sessionStorage.getItem(DISMISS_PREFIX + id) === '1'; } catch (e) { return false; }
   }
@@ -509,7 +530,7 @@
     document.body.appendChild(pill);
   }
 
-  // ---------- 4) streak mini-calendar ----------
+  // ---------- 5) streak mini-calendar ----------
   function decorateStreaks() {
     var days = safeGet(READ_DAYS_KEY);
     if (!days || !days.length) return;
@@ -534,6 +555,7 @@
   // ---------- orchestration ----------
   function refresh() {
     try {
+      trimSurahMeta();       // before decorateHomeCards: keeps "N verses" readable
       decorateHomeCards();
       decorateStreaks();
       updateResumePill();
