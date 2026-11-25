@@ -62,9 +62,15 @@
       position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
       clip:rect(0,0,0,0); white-space:nowrap; border:0;
     }
-    p.verse-translation {
-    line-height: 1.5 !important;
-    }
+    /* Non-Urdu translations (English etc.): tighter */
+p.verse-translation:not([data-rtl="true"]) {
+  line-height: 1.5 !important;
+}
+/* Urdu: reduced but readable */
+.verse-translation[data-rtl="true"] {
+  line-height: 2 !important;
+}
+
     /* ============================================================
        HEADER
        ============================================================ */
