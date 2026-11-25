@@ -26,8 +26,10 @@
 
 // ---------- styles (injected, all classes prefixed nq-ux-) ----------
   var CSS = [
-    '.nq-ux-prog { margin-top: 8px; }',
-    '.nq-ux-prog-bar { height: 4px; border-radius: 99px; background: rgba(127,127,127,.25); overflow: hidden; }',
+    // FIX: width 100% so the bar fills its parent column, not the flex card row
+    '.nq-ux-prog { margin-top: 6px; width: 100%; }',
+    // FIX: cap bar width so it stays compact inside .surah-info
+    '.nq-ux-prog-bar { height: 4px; max-width: 220px; border-radius: 99px; background: rgba(127,127,127,.25); overflow: hidden; }',
     '.nq-ux-prog-fill { height: 100%; border-radius: 99px; background: #b58a3b; }',
     '.nq-ux-prog-label { display: block; font-size: 11px; margin-top: 3px; opacity: .7; }',
     '.nq-ux-resume { position: fixed; left: 50%; transform: translateX(-50%);',
@@ -105,7 +107,12 @@ function injectStyles() {
       label.textContent = 'Read up to v.' + p.v + (total ? ' of ' + total : '');
       box.appendChild(bar);
       box.appendChild(label);
-      a.appendChild(box);
+      // FIX: append into .surah-info (the card's middle flex column) instead
+      // of the card root. Appending to the root made the progress box a 4th
+      // flex item in the surah-card row and disturbed the layout. Nesting it
+      // here keeps the 3-column card intact and the bar flows under the meta
+      // line. Falls back to the card root if .surah-info is ever missing.
+      (a.querySelector('.surah-info') || a).appendChild(box);
       a.setAttribute('data-ux-prog', '1');
     });
   }
