@@ -5,7 +5,7 @@
 //   - Google Fonts + jsDelivr (Urdu webfont): cache-first with runtime cache
 //   - Audio CDN: pass through (files are large; browser handles its own cache)
 
-const VERSION = 'nq-v6';
+const VERSION = 'nq-v7';
 const SHELL   = 'nq-shell-'   + VERSION;
 const RUNTIME = 'nq-runtime-' + VERSION;
 
