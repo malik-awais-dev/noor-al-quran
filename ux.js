@@ -13,7 +13,8 @@
 // Round 5: full-palette themes. Green (default) + ColorHunt palettes Indigo, Rose,
 //   Plum. Each preset drives the ENTIRE color system (bg, surface, surface-2, ink,
 //   muted, primary, primary-2, primary-soft, accent, border) in light AND dark mode.
-//   Old Round-4 single-hue ids (pink/purple/teal/blue/amber) fall back to Green.
+// Round 5b: legacy Round-4 ids (pink/purple/teal/blue/amber) migrate to the nearest
+//   Round-5 theme instead of falling back to Green; resume pill fits small screens.
 
 (function () {
   'use strict';
@@ -52,7 +53,6 @@
   //   Indigo: 00105B 6061B6 C9B5E0 FCF9EC
   //   Rose:   FA699E FF9FC7 FFE7F0 4ADD82
   //   Plum:   774D78 AF8EB1 B7D0CC F1E3C4
-  // Accent is darkened slightly in light mode so small text stays readable.
   var PALETTES = {
     green:  { name: 'Green',
       light: { bg:'#faf7f0', surface:'#ffffff', surface2:'#f4efe2', ink:'#1e2a24', muted:'#5b6b62',
@@ -77,6 +77,15 @@
   };
   var DEFAULT_PALETTE = 'green'; // values mirror styles.css defaults exactly
 
+  // Round 5b: legacy Round-4 single-hue ids -> nearest Round-5 theme
+  var LEGACY_PALETTE_MAP = {
+    pink:   'rose',   // old Pink -> Rose (the user's FA699E palette)
+    purple: 'indigo',
+    teal:   'green',
+    blue:   'indigo',
+    amber:  'plum'
+  };
+
   function isDark() {
     try { return document.documentElement.getAttribute('data-theme') === 'dark'; } catch (e) { return false; }
   }
@@ -84,7 +93,14 @@
   function currentPalette() {
     try {
       var s = localStorage.getItem(PALETTE_KEY);
-      return (s && PALETTES[s]) ? s : DEFAULT_PALETTE;
+      if (!s) return DEFAULT_PALETTE;
+      if (PALETTES[s]) return s;
+      // Round 5b: migrate a legacy id once and remember the new one.
+      if (LEGACY_PALETTE_MAP[s]) {
+        localStorage.setItem(PALETTE_KEY, LEGACY_PALETTE_MAP[s]);
+        return LEGACY_PALETTE_MAP[s];
+      }
+      return DEFAULT_PALETTE;
     } catch (e) { return DEFAULT_PALETTE; }
   }
 
@@ -94,8 +110,8 @@
     var r = document.documentElement.style;
     r.setProperty('--bg',          c.bg);
     r.setProperty('--surface',     c.surface);
-    r.setProperty('--surface-2',  c.surface2);
-    r.setProperty('--ink',        c.ink);
+    r.setProperty('--surface-2',   c.surface2);
+    r.setProperty('--ink',         c.ink);
     r.setProperty('--muted',       c.muted);
     r.setProperty('--primary',     c.primary);
     r.setProperty('--primary-2',   c.primary2);
@@ -123,8 +139,7 @@
     if (palettePickerAdded) return;
     var arabic = $('#fontSizeSlider');
     if (!arabic || !arabic.closest) return;
-    var section = arabic.closest('.drawer-section');
-    var host = section;
+    var host = arabic.closest('.drawer-section');
     if (!host) {
       var urdu = $('#nqUrduSizeSlider');
       var label = (urdu && urdu.closest('label')) || arabic.closest('label');
@@ -224,8 +239,10 @@
   }
 
   // ---------- styles ----------
-  // Accent/primary colors use CSS variables (Round 5) so every themed element
+  // Round 5b: accent/primary colors use CSS variables so every themed element
   // (progress bars, resume pill, streak dots, swatches) follows the active palette.
+  // Resume pill is capped to viewport width with an ellipsis so long labels
+  // ("Continue re-reading at verse 286") never break the layout on phones.
   var CSS = [
     '.nq-ux-prog { margin-top: 6px; width: 100%; }',
     '.nq-ux-prog-bar {',
@@ -236,14 +253,21 @@
     '.nq-ux-resume { position: fixed; left: 50%; transform: translateX(-50%);',
     '  bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 60;',
     '  display: flex; align-items: center; gap: 10px;',
+    '  max-width: min(92vw, 480px); box-sizing: border-box;',
     '  background: var(--primary); color: #fff; border-radius: 999px; padding: 10px 16px;',
     '  box-shadow: 0 6px 24px rgba(0,0,0,.25); font-size: 14px; font-weight: 600;',
     '  text-decoration: none; }',
+    '.nq-ux-resume > span:first-child {',
+    '  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }',
     '.nq-ux-resume:hover, .nq-ux-resume:focus-visible { text-decoration: none; filter: brightness(1.1); }',
-    '.nq-ux-resume-x { background: none; border: 0; color: inherit; cursor: pointer;',
+    '.nq-ux-resume-x { background: none; border: 0; color: inherit; cursor: pointer; flex-shrink: 0;',
     '  display: inline-flex; padding: 2px; opacity: .7; font-size: 15px; line-height: 1; }',
     '.nq-ux-resume-x:hover { opacity: 1; }',
     '@media (min-width: 701px) { .nq-ux-resume { bottom: 24px; } }',
+    '@media (max-width: 700px) {',
+    '  .nq-ux-resume { font-size: 13px; padding: 8px 12px; gap: 8px; max-width: calc(100vw - 24px); }',
+    '  .nq-ux-resume-x { font-size: 14px; }',
+    '}',
     '.nq-ux-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle; pointer-events: none; }',
     '.nq-ux-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .18; }',
     '.nq-ux-dot.on { background: var(--accent); opacity: 1; }',
@@ -430,12 +454,12 @@
       bar.appendChild(fill);
       var label = document.createElement('span');
       label.className = 'nq-ux-prog-label';
-      var times = p.done > 1 ? ' · ' + p.done + '×' : '';
+      var times = p.done > 1 ? ' · ' + p.done + '\u00d7' : '';
       if (p.done && !p.v) {
         label.className += ' nq-ux-prog-done';
-        label.textContent = 'Completed ✓' + times;
+        label.textContent = 'Completed \u2713' + times;
       } else if (p.done && p.v) {
-        label.textContent = 'Re-reading · v.' + p.v + (total ? ' of ' + total : '') + times;
+        label.textContent = 'Re-reading \u00b7 v.' + p.v + (total ? ' of ' + total : '') + times;
       } else {
         label.textContent = 'Read up to v.' + p.v + (total ? ' of ' + total : '');
       }
@@ -466,12 +490,12 @@
     pill.href = '#/surah/' + route.id + '/verse/' + p.v;
     pill.setAttribute('aria-label', 'Continue at verse ' + p.v);
     var span = document.createElement('span');
-    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' ↓';
+    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' \u2193';
     var x = document.createElement('button');
     x.type = 'button';
     x.className = 'nq-ux-resume-x';
     x.setAttribute('aria-label', 'Dismiss');
-    x.textContent = '✕';
+    x.textContent = '\u2715';
     x.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -522,7 +546,7 @@
   function init() {
     pinSettings();
     injectStyles();
-    applyPalette(currentPalette());
+    applyPalette(currentPalette());  // currentPalette() migrates legacy ids (Round 5b)
     syncMetaThemeColor();
     refresh();
     var runSoon = debounce(refresh, 150);
