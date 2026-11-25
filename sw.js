@@ -5,7 +5,7 @@
 //   - Google Fonts (CSS + font files): cache-first with runtime cache
 //   - Audio CDN: pass through (files are large; browser handles its own cache)
 
-const VERSION = 'nq-v3';
+const VERSION = 'nq-v4';
 const SHELL   = 'nq-shell-'   + VERSION;
 const RUNTIME = 'nq-runtime-' + VERSION;
 
@@ -14,6 +14,7 @@ const APP_SHELL_URLS = [
   './index.html',
   './styles.css',
   './app.js',
+  './ux.js',
   './manifest.webmanifest',
   './icon.svg',
 ];
