@@ -33,7 +33,7 @@ Read the Holy Quran online with beautiful Arabic text, Urdu translation (Fateh M
   - **Urdu webfont + size slider** — Jameel Noori Nastaleeq via jsDelivr; size via `--nq-urdu-size` (18–44px).
   - **Theme presets** — `--primary`/`--primary-2`/`--primary-soft`/`--accent` overrides with light+dark variants; `<meta theme-color>` sync.
   - **PNG icon** — runtime swap of favicon/apple-touch-icon/brand-mark; manifest lists it any+maskable 512×512.
-- **Service worker** — `nq-v5`, precaches app shell including `ux.js`.
+- **Service worker** — `nq-v6`, precaches app shell including `ux.js` and the PNG icon.
 
 ## Stack
 
@@ -56,6 +56,10 @@ Pure static files. No framework, no bundler, no dependencies.
 Static site — deploy anywhere. Current host: **Vercel** (auto-deploys on merge to `main`).
 
 **Vercel from GitHub** — import the repo at <https://vercel.com/new>, no build command, output directory `.` (root). Every push to `main` deploys automatically.
+
+## Changelog
+
+- **Round 4** — uploaded PNG app icon everywhere; color theme presets (Green, Pink, Purple, Teal, Blue, Amber) with light/dark variants; service worker `nq-v6` precaching the PNG.
 
 ## License
 
