@@ -5,7 +5,7 @@
 //   - Google Fonts + jsDelivr (Urdu webfont): cache-first with runtime cache
 //   - Audio CDN: pass through (files are large; browser handles its own cache)
 
-const VERSION = 'nq-v5';
+const VERSION = 'nq-v6';
 const SHELL   = 'nq-shell-'   + VERSION;
 const RUNTIME = 'nq-runtime-' + VERSION;
 
@@ -17,6 +17,7 @@ const APP_SHELL_URLS = [
   './ux.js',
   './manifest.webmanifest',
   './icon.svg',
+  './app%20fav%20icon.png',
 ];
 
 self.addEventListener('install', (event) => {
