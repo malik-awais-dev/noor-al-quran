@@ -19,6 +19,12 @@ Read the Holy Quran online with beautiful Arabic text, translations in your lang
 - **Dark mode** — follows system preference, override persisted
 - **PWA** — installable on desktop and mobile; works offline for pages you've already visited
 - **Responsive** — bottom nav on mobile, side drawer on all sizes
+- **UX enhancements (`ux.js`)** — self-contained IIFE add-on; observes DOM + localStorage, never touches app.js internals. Styles self-injected (`<style id="nqUxStyles">`, classes prefixed `nq-ux-`), re-decorates via MutationObserver + hashchange. Features:
+  - **Per-surah progress** — piggybacks on `nq:lastRead`; while on plain `#/surah/{id}`, mirrors max verse reached into `nq:progress:{id}` = `{ v, at }`.
+  - **Home card progress bars** — gold bar + "Read up to v.N of M" on surah cards with saved progress (total parsed from card text).
+  - **Resume pill** — on `#/surah/{id}` with progress ≥ v.2, floating pill deep-links to `#/surah/{id}/verse/{N}` (reuses smooth-scroll + gold flash). Dismissible per session (`nq:uxResumeHide:{id}` in sessionStorage).
+  - **Streak mini-calendar** — 7-day dot row appended to `#heroStreak` / `#drawerStreak`, read from `nq:readDays` (UTC ISO convention). Read-only.
+- **Service worker** — now `nq-v4`, precaches `ux.js`.
 
 ## Stack
 
