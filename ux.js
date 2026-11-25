@@ -1,4 +1,4 @@
-// Noor al-Quran - UX enhancements (Rounds 1-4)
+// Noor al-Quran - UX enhancements (Rounds 1-5)
 // Self-contained add-on. Observes DOM + localStorage; never touches app.js internals.
 // Load with: <script src="ux.js" defer></script> (before </body>, after app.js).
 //
@@ -9,10 +9,11 @@
 // Round 4: user-uploaded PNG app icon + multi-color theme presets.
 //   - Icon: "app fav icon.png" replaces favicon, apple-touch-icon, and the
 //     header brand-mark (as an <img>); manifest lists it any+maskable 512x512.
-//   - Themes: Green (default), Pink, Purple, Teal, Blue, Amber. Each preset
-//     overrides --primary/--primary-2/--primary-soft/--accent (and the
-//     theme-color meta) with light and dark variants. Picker = color swatches
-//     in the drawer Reading section; saved to nq:palette, applied at boot.
+//   - Picker = color swatches in the drawer Reading section; saved to nq:palette.
+// Round 5: full-palette themes. Green (default) + ColorHunt palettes Indigo, Rose,
+//   Plum. Each preset drives the ENTIRE color system (bg, surface, surface-2, ink,
+//   muted, primary, primary-2, primary-soft, accent, border) in light AND dark mode.
+//   Old Round-4 single-hue ids (pink/purple/teal/blue/amber) fall back to Green.
 
 (function () {
   'use strict';
@@ -23,7 +24,7 @@
   var READ_DAYS_KEY  = 'nq:readDays';        // written by app.js (ISO date strings)
   var DISMISS_PREFIX = 'nq:uxResumeHide:';   // sessionStorage, per-session
   var URDU_SIZE_KEY  = 'nq:urduSize';        // Round 3
-  var PALETTE_KEY    = 'nq:palette';         // Round 4 (plain string id)
+  var PALETTE_KEY    = 'nq:palette';         // Round 4/5 (plain string id)
   var ICON_PNG       = 'app%20fav%20icon.png'; // Round 4 (URL-encoded repo file)
 
   // ---------- Round 2: pinned values ----------
@@ -44,22 +45,35 @@
     var t; return function () { clearTimeout(t); t = setTimeout(fn, ms || 150); };
   }
 
-  // ---------- Round 4: theme presets ----------
-  // Only brand colors are themed; neutrals (bg/surface/ink) stay app-defined so
-  // every preset works in light AND dark mode (app.js drives [data-theme]).
+  // ---------- Round 5: full-palette themes ----------
+  // Each preset maps the whole color system for light and dark mode; values mirror
+  // the styles.css :root and [data-theme="dark"] variables.
+  // Indigo, Rose, Plum are from ColorHunt palettes supplied by the user:
+  //   Indigo: 00105B 6061B6 C9B5E0 FCF9EC
+  //   Rose:   FA699E FF9FC7 FFE7F0 4ADD82
+  //   Plum:   774D78 AF8EB1 B7D0CC F1E3C4
+  // Accent is darkened slightly in light mode so small text stays readable.
   var PALETTES = {
-    green:  { name: 'Green',  primary: '#0f5132', primary2: '#0b3d25', soft: '#e6f1ea', accent: '#b58a3b',
-              darkPrimary: '#35b47a', darkPrimary2: '#46c489', darkSoft: '#1c2f27', darkAccent: '#d4b56a' },
-    pink:   { name: 'Pink',   primary: '#a63d74', primary2: '#8a2f60', soft: '#fbe9f2', accent: '#c99a4e',
-              darkPrimary: '#e881ab', darkPrimary2: '#ef9dbf', darkSoft: '#2e1a26', darkAccent: '#d9ae6b' },
-    purple: { name: 'Purple', primary: '#5b3e9b', primary2: '#472f80', soft: '#ece6f8', accent: '#b58a3b',
-              darkPrimary: '#a18bd8', darkPrimary2: '#b3a0e3', darkSoft: '#221d33', darkAccent: '#d4b56a' },
-    teal:   { name: 'Teal',   primary: '#0d6b6b', primary2: '#095050', soft: '#e0f2f2', accent: '#b58a3b',
-              darkPrimary: '#3fc4c4', darkPrimary2: '#5ed0d0', darkSoft: '#122e2e', darkAccent: '#d4b56a' },
-    blue:   { name: 'Blue',   primary: '#1f4e9b', primary2: '#163d7d', soft: '#e6eefb', accent: '#b58a3b',
-              darkPrimary: '#6da4e8', darkPrimary2: '#84b5ef', darkSoft: '#1a2639', darkAccent: '#d4b56a' },
-    amber:  { name: 'Amber',  primary: '#a46520', primary2: '#87501b', soft: '#f9eee0', accent: '#8a6a2e',
-              darkPrimary: '#d59b52', darkPrimary2: '#dfae6b', darkSoft: '#2e2318', darkAccent: '#e5c98b' }
+    green:  { name: 'Green',
+      light: { bg:'#faf7f0', surface:'#ffffff', surface2:'#f4efe2', ink:'#1e2a24', muted:'#5b6b62',
+               primary:'#0f5132', primary2:'#0b3d25', soft:'#e6f1ea', accent:'#b58a3b', border:'#e8e2d0' },
+      dark:  { bg:'#0e1613', surface:'#16211d', surface2:'#1d2a25', ink:'#e8ede9', muted:'#97a89f',
+               primary:'#35b47a', primary2:'#46c489', soft:'#1c2f27', accent:'#d4b56a', border:'#23342c' } },
+    indigo: { name: 'Indigo',
+      light: { bg:'#fcf9ec', surface:'#ffffff', surface2:'#f3efdf', ink:'#1a1f40', muted:'#5a5f80',
+               primary:'#00105b', primary2:'#000b42', soft:'#eae6f7', accent:'#6061b6', border:'#e6e0cf' },
+      dark:  { bg:'#0d1030', surface:'#161a44', surface2:'#1d2154', ink:'#eceaf6', muted:'#9ca0c9',
+               primary:'#8f8fd1', primary2:'#6061b6', soft:'#23284f', accent:'#c9b5e0', border:'#262a57' } },
+    rose:   { name: 'Rose',
+      light: { bg:'#ffe7f0', surface:'#ffffff', surface2:'#fff2f7', ink:'#40202e', muted:'#8a6473',
+               primary:'#e34f84', primary2:'#c23a6e', soft:'#ffdce9', accent:'#1e8a4c', border:'#f3d6e3' },
+      dark:  { bg:'#2a1520', surface:'#381c2a', surface2:'#452234', ink:'#f7e9ef', muted:'#c29dae',
+               primary:'#fa699e', primary2:'#ff9fc7', soft:'#4a2537', accent:'#4add82', border:'#553040' } },
+    plum:   { name: 'Plum',
+      light: { bg:'#f1e3c4', surface:'#fbf6ea', surface2:'#efe3c9', ink:'#3a2c3d', muted:'#7c6e80',
+               primary:'#774d78', primary2:'#5c3a5d', soft:'#e7ddec', accent:'#2f5d54', border:'#e0d3b4' },
+      dark:  { bg:'#231a24', surface:'#2e2230', surface2:'#3a2c3c', ink:'#f1e8ee', muted:'#b0a3b3',
+               primary:'#af8eb1', primary2:'#c3a6c5', soft:'#402f42', accent:'#b7d0cc', border:'#443449' } }
   };
   var DEFAULT_PALETTE = 'green'; // values mirror styles.css defaults exactly
 
@@ -76,23 +90,23 @@
 
   function applyPalette(id) {
     var p = PALETTES[id] || PALETTES[DEFAULT_PALETTE];
+    var c = isDark() ? p.dark : p.light;
     var r = document.documentElement.style;
-    if (isDark()) {
-      r.setProperty('--primary', p.darkPrimary);
-      r.setProperty('--primary-2', p.darkPrimary2);
-      r.setProperty('--primary-soft', p.darkSoft);
-      r.setProperty('--accent', p.darkAccent);
-    } else {
-      r.setProperty('--primary', p.primary);
-      r.setProperty('--primary-2', p.primary2);
-      r.setProperty('--primary-soft', p.soft);
-      r.setProperty('--accent', p.accent);
-    }
+    r.setProperty('--bg',          c.bg);
+    r.setProperty('--surface',     c.surface);
+    r.setProperty('--surface-2',  c.surface2);
+    r.setProperty('--ink',        c.ink);
+    r.setProperty('--muted',       c.muted);
+    r.setProperty('--primary',     c.primary);
+    r.setProperty('--primary-2',   c.primary2);
+    r.setProperty('--primary-soft', c.soft);
+    r.setProperty('--accent',      c.accent);
+    r.setProperty('--border',      c.border);
   }
 
   function syncMetaThemeColor() {
     var p = PALETTES[currentPalette()] || PALETTES[DEFAULT_PALETTE];
-    var val = isDark() ? '#0e1613' : p.primary;
+    var val = isDark() ? p.dark.bg : p.light.bg;
     var metas = document.querySelectorAll('meta[name="theme-color"]');
     if (metas.length) metas[0].setAttribute('content', val);
   }
@@ -139,7 +153,7 @@
       btn.title = p.name;
       var dot = document.createElement('span');
       dot.className = 'nq-ux-swatch-dot';
-      dot.style.background = p.primary;
+      dot.style.background = 'linear-gradient(135deg,' + p.light.primary + ' 55%,' + p.light.accent + ' 55%)';
       var nm = document.createElement('span');
       nm.className = 'nq-ux-swatch-name';
       nm.textContent = p.name;
@@ -210,16 +224,19 @@
   }
 
   // ---------- styles ----------
+  // Accent/primary colors use CSS variables (Round 5) so every themed element
+  // (progress bars, resume pill, streak dots, swatches) follows the active palette.
   var CSS = [
     '.nq-ux-prog { margin-top: 6px; width: 100%; }',
-    '.nq-ux-prog-bar { height: 4px; max-width: 220px; border-radius: 99px; background: rgba(127,127,127,.25); overflow: hidden; }',
-    '.nq-ux-prog-fill { height: 100%; border-radius: 99px; background: #b58a3b; }',
+    '.nq-ux-prog-bar {',
+    ' height: 4px; max-width: 220px; border-radius: 99px; background: rgba(127,127,127,.25); overflow: hidden; }',
+    '.nq-ux-prog-fill { height: 100%; border-radius: 99px; background: var(--accent); }',
     '.nq-ux-prog-label { display: block; font-size: 11px; margin-top: 3px; opacity: .7; }',
-    '.nq-ux-prog-done { color: #b58a3b; opacity: 1; font-weight: 600; }',
+    '.nq-ux-prog-done { color: var(--accent); opacity: 1; font-weight: 600; }',
     '.nq-ux-resume { position: fixed; left: 50%; transform: translateX(-50%);',
     '  bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 60;',
     '  display: flex; align-items: center; gap: 10px;',
-    '  background: #0f5132; color: #fff; border-radius: 999px; padding: 10px 16px;',
+    '  background: var(--primary); color: #fff; border-radius: 999px; padding: 10px 16px;',
     '  box-shadow: 0 6px 24px rgba(0,0,0,.25); font-size: 14px; font-weight: 600;',
     '  text-decoration: none; }',
     '.nq-ux-resume:hover, .nq-ux-resume:focus-visible { text-decoration: none; filter: brightness(1.1); }',
@@ -229,7 +246,7 @@
     '@media (min-width: 701px) { .nq-ux-resume { bottom: 24px; } }',
     '.nq-ux-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle; pointer-events: none; }',
     '.nq-ux-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .18; }',
-    '.nq-ux-dot.on { background: #b58a3b; opacity: 1; }',
+    '.nq-ux-dot.on { background: var(--accent); opacity: 1; }',
     '@font-face {',
     '  font-family: "Jameel Noori Nastaleeq";',
     '  src: url("https://cdn.jsdelivr.net/gh/tariq-abdullah/urdu-web-font-CDN@main/JameelNooriNastaleeq.woff") format("woff");',
@@ -413,10 +430,10 @@
       bar.appendChild(fill);
       var label = document.createElement('span');
       label.className = 'nq-ux-prog-label';
-      var times = p.done > 1 ? ' · ' + p.done + '\u00d7' : '';
+      var times = p.done > 1 ? ' · ' + p.done + '×' : '';
       if (p.done && !p.v) {
         label.className += ' nq-ux-prog-done';
-        label.textContent = 'Completed \u2713' + times;
+        label.textContent = 'Completed ✓' + times;
       } else if (p.done && p.v) {
         label.textContent = 'Re-reading · v.' + p.v + (total ? ' of ' + total : '') + times;
       } else {
@@ -449,12 +466,12 @@
     pill.href = '#/surah/' + route.id + '/verse/' + p.v;
     pill.setAttribute('aria-label', 'Continue at verse ' + p.v);
     var span = document.createElement('span');
-    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' \u2193';
+    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' ↓';
     var x = document.createElement('button');
     x.type = 'button';
     x.className = 'nq-ux-resume-x';
     x.setAttribute('aria-label', 'Dismiss');
-    x.textContent = '\u2715';
+    x.textContent = '✕';
     x.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
