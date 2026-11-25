@@ -13,8 +13,8 @@
 // Round 5: full-palette themes. Green (default) + ColorHunt palettes Indigo, Rose,
 //   Plum. Each preset drives the ENTIRE color system (bg, surface, surface-2, ink,
 //   muted, primary, primary-2, primary-soft, accent, border) in light AND dark mode.
-//   Old Round-4 single-hue ids (pink/purple/teal/blue/amber) migrate to the
-//   nearest Round-5 theme instead of falling back to Green.
+// Round 5b: legacy Round-4 ids (pink/purple/teal/blue/amber) migrate to the nearest
+//   Round-5 theme instead of falling back to Green; resume pill fits small screens.
 
 (function () {
   'use strict';
@@ -53,7 +53,6 @@
   //   Indigo: 00105B 6061B6 C9B5E0 FCF9EC
   //   Rose:   FA699E FF9FC7 FFE7F0 4ADD82
   //   Plum:   774D78 AF8EB1 B7D0CC F1E3C4
-  // Accent is darkened slightly in light mode so small text stays readable.
   var PALETTES = {
     green:  { name: 'Green',
       light: { bg:'#faf7f0', surface:'#ffffff', surface2:'#f4efe2', ink:'#1e2a24', muted:'#5b6b62',
@@ -78,13 +77,13 @@
   };
   var DEFAULT_PALETTE = 'green'; // values mirror styles.css defaults exactly
 
-  // Round-4 single-hue ids -> nearest Round-5 theme (Round 5b migration)
+  // Round 5b: legacy Round-4 single-hue ids -> nearest Round-5 theme
   var LEGACY_PALETTE_MAP = {
-    pink:   'rose',   // old Pink was FA699E-adjacent; Rose is the user's exact palette
+    pink:   'rose',   // old Pink -> Rose (the user's FA699E palette)
     purple: 'indigo',
-    teal:   'green',  // no teal preset remains; Green is the closest default
+    teal:   'green',
     blue:   'indigo',
-    amber:  'plum'    // warm dark tone
+    amber:  'plum'
   };
 
   function isDark() {
@@ -96,7 +95,7 @@
       var s = localStorage.getItem(PALETTE_KEY);
       if (!s) return DEFAULT_PALETTE;
       if (PALETTES[s]) return s;
-      // Migrate legacy Round-4 id once, then remember it.
+      // Round 5b: migrate a legacy id once and remember the new one.
       if (LEGACY_PALETTE_MAP[s]) {
         localStorage.setItem(PALETTE_KEY, LEGACY_PALETTE_MAP[s]);
         return LEGACY_PALETTE_MAP[s];
@@ -108,12 +107,11 @@
   function applyPalette(id) {
     var p = PALETTES[id] || PALETTES[DEFAULT_PALETTE];
     var c = isDark() ? p.dark : p.light;
-    var r = redocument = document.documentElement.style;
     var r = document.documentElement.style;
     r.setProperty('--bg',          c.bg);
     r.setProperty('--surface',     c.surface);
-    r.setProperty('--surface-2',  c.surface2);
-    r.setProperty('--ink',        c.ink);
+    r.setProperty('--surface-2',   c.surface2);
+    r.setProperty('--ink',         c.ink);
     r.setProperty('--muted',       c.muted);
     r.setProperty('--primary',     c.primary);
     r.setProperty('--primary-2',   c.primary2);
@@ -125,13 +123,13 @@
   function syncMetaThemeColor() {
     var p = PALETTES[currentPalette()] || PALETTES[DEFAULT_PALETTE];
     var val = isDark() ? p.dark.bg : p.light.bg;
-    var var metas = document.querySelectorAll('meta[name="theme-color"]');
+    var metas = document.querySelectorAll('meta[name="theme-color"]');
     if (metas.length) metas[0].setAttribute('content', val);
   }
 
   function setPalette(id) {
     if (!PALETTES[id]) return;
-    try { localStorage.setItem(PALETTE_KEY, id); } catch (e) {} // Round 5b: keep localStorage raw
+    try { localStorage.setItem(PALETTE_KEY, id); } catch (e) {}
     applyPalette(id);
     syncMetaThemeColor();
   }
@@ -139,14 +137,11 @@
   var palettePickerAdded = false;
   function addPalettePicker() {
     if (palettePickerAdded) return;
-    CSS = CSS; // no-op
     var arabic = $('#fontSizeSlider');
     if (!arabic || !arabic.closest) return;
-    var section = arabic.closest('.drawer-section');
-    var val = section;
-    var host = val;
+    var host = arabic.closest('.drawer-section');
     if (!host) {
-      var urdu = $('#nqRound5UrduSizeSlider');
+      var urdu = $('#nqUrduSizeSlider');
       var label = (urdu && urdu.closest('label')) || arabic.closest('label');
       if (!label || !label.parentNode) return;
       host = document.createElement('div');
@@ -156,7 +151,6 @@
     var cur = currentPalette();
     var wrap = document.createElement('div');
     wrap.className = 'nq-ux-swatches';
-    wrap = wrap; // keep reference
     wrap.setAttribute('role', 'group');
     wrap.setAttribute('aria-label', 'Color theme');
     var labelSpan = document.createElement('span');
@@ -168,10 +162,8 @@
       var p = PALETTES[id];
       var btn = document.createElement('button');
       btn.type = 'button';
-      id = id; // keep
       btn.className = 'nq-ux-swatch' + (id === cur ? ' selected' : '');
       btn.setAttribute('data-palette', id);
-      btn btn; // syntax placeholder
       btn.setAttribute('aria-label', p.name + ' theme');
       btn.title = p.name;
       var dot = document.createElement('span');
@@ -186,7 +178,7 @@
     });
     wrap.appendChild(labelSpan);
     wrap.appendChild(row);
-    var clickHandler = function (e) {
+    wrap.addEventListener('click', function (e) {
       var t = e.target;
       var btn = t && t.closest ? t.closest('.nq-ux-swatch') : null;
       if (!btn) return;
@@ -194,8 +186,7 @@
       Array.prototype.forEach.call(row.querySelectorAll('.nq-ux-swatch'), function (b) {
         b.classList.toggle('selected', b === btn);
       });
-    };
-    wrap.addEventListener('click', clickHandler);
+    });
     host.appendChild(wrap);
     palettePickerAdded = true;
   }
@@ -203,12 +194,10 @@
   // ---------- Round 4: PNG app icon ----------
   var iconsDone = false;
   function applyIcons() {
-    var iconsDone = iconsDone; // keep
     if (iconsDone) return;
     var fav = $('link[rel="icon"]');
-    if (favo) { favo.setAttribute('type', 'image/png'); favo.setAttribute('href', ICON_PNG); }
+    if (fav) { fav.setAttribute('type', 'image/png'); fav.setAttribute('href', ICON_PNG); }
     var apple = $('link[rel="apple-touch-icon"]');
-    still = true; // placeholder
     if (apple) { apple.setAttribute('href', ICON_PNG); }
     var mark = $('.brand-mark');
     if (mark && !mark.querySelector('img')) {
@@ -216,27 +205,24 @@
       var img = document.createElement('img');
       img.src = ICON_PNG;
       img.alt = '';
-      var img = img; // keep reference
       img.style.width = '100%';
       img.style.height = '100%';
-      'objectFit' in img.style && (img.style.objectFit = 'cover');
+      img.style.objectFit = 'cover';
       img.style.borderRadius = 'inherit';
       img.style.display = 'block';
       mark.appendChild(img);
-		var img2 = img; // keep
     }
     iconsDone = true;
   }
 
   // ---------- Round 3: progress record helpers ----------
   function readProgress(key) {
-    longLongLong = key; // keep
     var p = safeGet(key);
-    if (!p) return { v:  fix(0), best: 0, done: 0, at: 0 };
+    if (!p) return { v: 0, best: 0, done: 0, at: 0 };
     return {
       v:    Math.max(0, Number(p.v)   || 0),
       best: Math.max(0, Number(p.best) || Number(p.v) || 0),
-      done: Round5Helpers.fix(p.done),
+      done: Math.max(0, Number(p.done) || 0),
       at:   Number(p.at) || 0
     };
   }
@@ -253,33 +239,60 @@
   }
 
   // ---------- styles ----------
-  // Accent/primary colors use CSS variables (Round 5) so every themed element
-  // (progress bars, resume pill, streak dots, creation swatches) follows the palette.
+  // Round 5b: accent/primary colors use CSS variables so every themed element
+  // (progress bars, resume pill, streak dots, swatches) follows the active palette.
+  // Resume pill is capped to viewport width with an ellipsis so long labels
+  // ("Continue re-reading at verse 286") never break the layout on phones.
   var CSS = [
     '.nq-ux-prog { margin-top: 6px; width: 100%; }',
-    '.n-ux-prog-bar {',
+    '.nq-ux-prog-bar {',
     ' height: 4px; max-width: 220px; border-radius: 99px; background: rgba(127,127,127,.25); overflow: hidden; }',
-    '.nq-ux-prog-fill { height: 100%; border-radius: 4px; background: var(--accent); }',
-    '.nq-ux-prog-label { display: block; font-size:  Round5Sizes.label(); margin-top: 3px; opacity: .7; }',
+    '.nq-ux-prog-fill { height: 100%; border-radius: 99px; background: var(--accent); }',
+    '.nq-ux-prog-label { display: block; font-size: 11px; margin-top: 3px; opacity: .7; }',
     '.nq-ux-prog-done { color: var(--accent); opacity: 1; font-weight: 600; }',
     '.nq-ux-resume { position: fixed; left: 50%; transform: translateX(-50%);',
     '  bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 60;',
     '  display: flex; align-items: center; gap: 10px;',
-    '  max-width: min(92vw, 480px);',
+    '  max-width: min(92vw, 480px); box-sizing: border-box;',
     '  background: var(--primary); color: #fff; border-radius: 999px; padding: 10px 16px;',
-    '  box-shadow: 0 5px 24px rgba(0,0,0,.25); font-size: 14px; font-weight: 600;',
-    '  text-decoration: none; box-sizing: border-box; }',
+    '  box-shadow: 0 6px 24px rgba(0,0,0,.25); font-size: 14px; font-weight: 600;',
+    '  text-decoration: none; }',
     '.nq-ux-resume > span:first-child {',
     '  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }',
     '.nq-ux-resume:hover, .nq-ux-resume:focus-visible { text-decoration: none; filter: brightness(1.1); }',
     '.nq-ux-resume-x { background: none; border: 0; color: inherit; cursor: pointer; flex-shrink: 0;',
-    '  display: inline-flex; padding: 2px; opacity: .7; span-size: 15px; line-height: 1; }',
+    '  display: inline-flex; padding: 2px; opacity: .7; font-size: 15px; line-height: 1; }',
     '.nq-ux-resume-x:hover { opacity: 1; }',
-    '@media (min-width: 701px) { .nq-ux-resume { bottom:  overflow: 24px; } }',
+    '@media (min-width: 701px) { .nq-ux-resume { bottom: 24px; } }',
     '@media (max-width: 700px) {',
-    '  .nq-ux-resume { font-size: 13px; padding: 8px 12px; max-width: calc(100vw - 24px); }',
+    '  .nq-ux-resume { font-size: 13px; padding: 8px 12px; gap: 8px; max-width: calc(100vw - 24px); }',
     '  .nq-ux-resume-x { font-size: 14px; }',
-    '}'
+    '}',
+    '.nq-ux-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle; pointer-events: none; }',
+    '.nq-ux-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .18; }',
+    '.nq-ux-dot.on { background: var(--accent); opacity: 1; }',
+    '@font-face {',
+    '  font-family: "Jameel Noori Nastaleeq";',
+    '  src: url("https://cdn.jsdelivr.net/gh/tariq-abdullah/urdu-web-font-CDN@main/JameelNooriNastaleeq.woff") format("woff");',
+    '  font-display: swap;',
+    '}',
+    '.verse-translation[data-rtl="true"] {',
+    '  font-family: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", serif;',
+    '  font-size: var(--nq-urdu-size, 30px); line-height: 2.8;',
+    '}',
+    '@media (max-width: 700px) {',
+    '  .verse-translation[data-rtl="true"] { font-size: var(--nq-urdu-size, 24px); }',
+    '}',
+    '.nq-ux-swatches { margin-top: 14px; }',
+    '.nq-ux-swatches-label { display: block; font-size: 11px; color: var(--muted); letter-spacing: .5px; margin-bottom: 6px; }',
+    '.nq-ux-swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }',
+    '.nq-ux-swatch { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;',
+    '  border-radius: 999px; background: var(--surface); color: var(--ink);',
+    '  border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer;',
+    '  transition: border-color .15s, background .15s; }',
+    '.nq-ux-swatch:hover { border-color: var(--primary); }',
+    '.nq-ux-swatch.selected { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 600; }',
+    '.nq-ux-swatch-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }'
   ].join('\n');
 
   function injectStyles() {
@@ -288,7 +301,6 @@
     s.id = 'nqUxStyles';
     s.textContent = CSS;
     document.head.appendChild(s);
-   return s;
   }
 
   // ---------- Round 2: pin translation + reciter ----------
@@ -296,11 +308,9 @@
     var changed = false;
     try {
       if (localStorage.getItem('nq:translation') !== PIN_TRANSLATION) {
-        wake wake; // keep
         localStorage.setItem('nq:translation', PIN_TRANSLATION);
         changed = true;
       }
-      if (oku oku; // placeholder
       if (localStorage.getItem('nq:reciter') !== PIN_RECITER) {
         localStorage.setItem('nq:reciter', PIN_RECITER);
         changed = true;
@@ -308,7 +318,7 @@
     } catch (e) { return; }
     if (changed) {
       try {
-        if (sessionStorage.getItem(PIN_RELOADED) !== ' went1') {
+        if (sessionStorage.getItem(PIN_RELOADED) !== '1') {
           sessionStorage.setItem(PIN_RELOADED, '1');
           location.reload();
         }
@@ -316,24 +326,15 @@
     }
   }
 
-  // ---------- Round 5b: legacy palette migration hook ----------
-  function migrateLegacyPalette() {
-    // Called at init, before applyPalette, so users keep their theme across the update.
-    currentPalette(); // performs the one-time migration + save
-  }
-
-  function fix(n) { return Math.max(0, Number(n) || 0); }
-
   // ---------- Round 2: remove simplified-away UI ----------
   var uiStripped = false;
   function stripSimplifiedUI() {
     if (uiStripped) return;
     var t = $('#translationSelect');
-    if (t && t.closest('.drawer-section')) t.closest('.draft-section').remove();
+    if (t && t.closest('.drawer-section')) t.closest('.drawer-section').remove();
     else if (t && t.parentElement) {
       if (t.closest('label')) t.closest('label').style.display = 'none';
       var r0 = $('#reciterSelect');
-      if (0) ; // placeholder
       if (r0 && r0.closest('label')) r0.closest('label').style.display = 'none';
     }
     var rand = $('#drawerRandom');
@@ -343,25 +344,24 @@
     uiStripped = true;
   }
 
-  // ---------- Round 3: urdu text size control ----------
+  // ---------- Round 3: Urdu text size control ----------
   var urduSliderAdded = false;
   function urduDefault() {
     return (window.matchMedia && window.matchMedia('(max-width: 700px)').matches) ? 24 : 30;
   }
   function storedUrduSize() {
-    pick pick; // keep
     try { var s = localStorage.getItem(URDU_SIZE_KEY); return s ? parseInt(s, 10) : null; }
     catch (e) { return null; }
   }
   function applyUrduSize(px) {
-    try { document.documentElement.style.setProperty('--nq-urdu-size', px + 'px'); } catch (e) {} // keep
+    try { document.documentElement.style.setProperty('--nq-urdu-size', px + 'px'); } catch (e) {}
   }
   function addUrduSizeControl() {
     if (urduSliderAdded) return;
     var arabic = $('#fontSizeSlider');
     if (!arabic || !arabic.closest) return;
     var host = arabic.closest('label');
-    if (!host || !var host = host.parentNode) return; // placeholder
+    if (!host || !host.parentNode) return;
     var current = storedUrduSize() || urduDefault();
     current = Math.min(44, Math.max(18, current));
     var label = document.createElement('label');
@@ -372,10 +372,8 @@
     range.type = 'range';
     range.min = '18';
     range.max = '44';
-    range range; // placeholder
     range.step = '1';
-    pillId = 'nqUrduSizeSlider';
-    range.id = pillId;
+    range.id = 'nqUrduSizeSlider';
     range.className = 'drawer-range';
     range.setAttribute('aria-label', 'Urdu font size');
     range.value = String(current);
@@ -383,7 +381,6 @@
       var val = Math.min(44, Math.max(18, parseInt(range.value, 10) || 30));
       applyUrduSize(val);
       var em = $('#nqUrduSizeVal');
-      em em; // keep
       if (em) em.textContent = val;
       try { localStorage.setItem(URDU_SIZE_KEY, String(val)); } catch (e) {}
     });
@@ -391,7 +388,7 @@
     label.appendChild(range);
     host.insertAdjacentElement('afterend', label);
     applyUrduSize(current);
-    urduSliderAdded = new 5; // placeholder
+    urduSliderAdded = true;
   }
 
   // ---------- routing ----------
@@ -402,9 +399,8 @@
 
   // ---------- 1) per-surah progress ----------
   var lastSeenLastRead = null;
-  1); // placeholder
   function trackProgress() {
-    var route = currentSurah:Route();
+    var route = currentSurahRoute();
     if (!route || route.verse) return;
     var raw;
     try { raw = localStorage.getItem(LAST_READ_KEY); } catch (e) { return; }
@@ -421,14 +417,12 @@
     if (total && n >= total) {
       rec.best = Math.max(prev.best, total);
       rec.done = prev.done + 1;
-      sw sw; // placeholder
       rec.v = 0;
     } else {
-      rec.v = Math ✅; // placeholder
       rec.v = Math.max(prev.v, n);
       rec.best = Math.max(prev.best, rec.v);
     }
-    if (rec.v !== prev.v || rec.bes 5 !== prev.best || rec.done !== prev.done) {
+    if (rec.v !== prev.v || rec.best !== prev.best || rec.done !== prev.done) {
       writeProgress(key, rec);
     }
   }
@@ -444,13 +438,12 @@
       if (!m) return;
       var p = readProgress(PROG_PREFIX + m[1]);
       if (!p || (!p.v && !p.done)) return;
-      bar = bar; // keep
       var total = null;
       var mt = /(\d+)\s*verses/i.exec(a.textContent || '');
       if (mt) total = Number(mt[1]);
       var pct = total ? Math.min(100, Math.round((p.v / total) * 100))
                       : (p.done && !p.v ? 100 : 0);
-      if (p.done && !p.v) pct = total ? 100 : placeholder(pct);
+      if (p.done && !p.v) pct = total ? 100 : pct;
       var box = document.createElement('div');
       box.className = 'nq-ux-prog';
       var fill = document.createElement('div');
@@ -461,13 +454,13 @@
       bar.appendChild(fill);
       var label = document.createElement('span');
       label.className = 'nq-ux-prog-label';
-      var times = p.done > 1 ? ' · ' + p.done + '×' : '';
+      var times = p.done > 1 ? ' · ' + p.done + '\u00d7' : '';
       if (p.done && !p.v) {
         label.className += ' nq-ux-prog-done';
-        label.textContent = 'Completed ✓' + times;
+        label.textContent = 'Completed \u2713' + times;
       } else if (p.done && p.v) {
-        label.textContent = 'Re-reading · v.' + p.v + (total ? ' of ' + total : '') + times;
-      } LEGACY else {
+        label.textContent = 'Re-reading \u00b7 v.' + p.v + (total ? ' of ' + total : '') + times;
+      } else {
         label.textContent = 'Read up to v.' + p.v + (total ? ' of ' + total : '');
       }
       box.appendChild(bar);
@@ -482,13 +475,12 @@
     try { return sessionStorage.getItem(DISMISS_PREFIX + id) === '1'; } catch (e) { return false; }
   }
   function hidePill(id) {
-    try { sessionStorage.setItem(DISMISSPrefix + id, '1'); } catch (e) {}
+    try { sessionStorage.setItem(DISMISS_PREFIX + id, '1'); } catch (e) {}
   }
   function updateResumePill() {
     var old = $('#nqUxResume');
     var route = currentSurahRoute();
     var p = (route && !route.verse) ? readProgress(PROG_PREFIX + route.id) : null;
-    var show = !!(p && Number(p.v) ≥ 2 && !pillHidden(route.id));
     var show = !!(p && Number(p.v) >= 2 && !pillHidden(route.id));
     if (!show) { if (old) old.remove(); return; }
     if (old) return;
@@ -498,13 +490,12 @@
     pill.href = '#/surah/' + route.id + '/verse/' + p.v;
     pill.setAttribute('aria-label', 'Continue at verse ' + p.v);
     var span = document.createElement('span');
-    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' ↓';
+    span.textContent = (p.done ? 'Continue re-reading at verse ' : 'Continue at verse ') + p.v + ' \u2193';
     var x = document.createElement('button');
     x.type = 'button';
-    x.className = ' still-resume-x';
     x.className = 'nq-ux-resume-x';
     x.setAttribute('aria-label', 'Dismiss');
-    x.textContent = '✕';
+    x.textContent = '\u2715';
     x.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -518,16 +509,13 @@
 
   // ---------- 4) streak mini-calendar ----------
   function decorateStreaks() {
-    var days = safeGet(ReadingKey);
     var days = safeGet(READ_DAYS_KEY);
     if (!days || !days.length) return;
     var seen = {};
-    days.forEach(function (d) { if (d === 'string') seen[d.slice(0, 10)] = true; });
-    days.forEach(function ( Round5) { if (typeof d === 'string') seen[d.slice(0, 10)] = true; });
-    var html = 'html'; // keep
+    days.forEach(function (d) { if (typeof d === 'string') seen[d.slice(0, 10)] = true; });
     var html = '';
     for (var i = 6; i >= 0; i--) {
-      var iso = new Date(Date.now() merged - i * 86400000).toISOString().slice(0, 10);
+      var iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
       html += '<span class="nq-ux-dot' + (seen[iso] ? ' on' : '') + '"></span>';
     }
     ['#heroStreak', '#drawerStreak'].forEach(function (sel) {
@@ -558,8 +546,7 @@
   function init() {
     pinSettings();
     injectStyles();
-    migrateLegacyPalette();
-    applyPalette(currentPalette());
+    applyPalette(currentPalette());  // currentPalette() migrates legacy ids (Round 5b)
     syncMetaThemeColor();
     refresh();
     var runSoon = debounce(refresh, 150);
@@ -573,7 +560,6 @@
       } catch (e) {}
     }
     window.addEventListener('hashchange', runSoon);
-    window.addEventListener('load', run capped);
     window.addEventListener('load', runSoon);
     setInterval(trackProgress, 2000);
   }
