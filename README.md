@@ -1,30 +1,39 @@
 # Noor al-Quran
 
-Read the Holy Quran online with beautiful Arabic text, translations in your language, and world-class recitations. Plain HTML/CSS/JS — no framework, no build step.
+**Live: <https://read-al-furquan.vercel.app/>**
+
+Read the Holy Quran online with beautiful Arabic text, Urdu translation (Fateh Muhammad Jalandhry), and world-class recitation (Mishary Rashid Alafasy). Plain HTML/CSS/JS — no framework, no build step.
 
 ## Features
 
 - **114 surahs** with live filter (English / Arabic / meaning / number) + Meccan/Medinan chips
-- **11 translations** grouped by language: English (Saheeh, Pickthall, Yusuf Ali), Urdu (Jalandhry, Junagarhi, Ahmed Ali), French, Turkish, Indonesian, Spanish, German
-- **6 reciters** with per-verse play, Play All, auto-advance, playback speed, verse highlight + auto-scroll, keyboard control
+- **Urdu translation** (Fateh Muhammad Jalandhry) rendered in Jameel Noori Nastaleeq
+- **Reciter fixed to Mishary Rashid Alafasy** with per-verse play, Play All, auto-advance, playback speed, verse highlight + auto-scroll, keyboard control
 - **Juz** (1–30) and **Page** (1–604) views
 - **Bookmarks** — heart-toggle per verse; dedicated `/bookmarks` page
 - **Continue reading** — auto-tracks your position and offers to resume
+- **Reset-on-completion** — finish a surah and it resets for a fresh re-read (✓ + "N×" badges; history never lost)
+- **Urdu text size** — adjustable in Menu → Reading (30px desktop / 24px mobile defaults)
+- **Color themes** — Green (default), Pink, Purple, Teal, Blue, Amber; each works in light and dark mode
+- **App icon** — uploaded PNG used for favicon, iOS home screen, Android install, and header logo
 - **Verse of the Day** — curated daily verse on the homepage
-- **Reading streak** — consecutive days you've opened the app
-- **Random surah** — one click surprise
+- **Reading streak** — consecutive days you've opened the app (+ 7-day dot calendar)
 - **Share & Copy** — native share sheet on mobile; fallback to WhatsApp, X, copy text, copy link
 - **Command palette** — `⌘K` / `Ctrl+K` for instant navigation
 - **Keyboard shortcuts** — `j`/`k` verses, `n`/`p` surahs, `b` bookmark, `s` share, `d` dark mode, `/` search, `?` help
 - **Dark mode** — follows system preference, override persisted
 - **PWA** — installable on desktop and mobile; works offline for pages you've already visited
 - **Responsive** — bottom nav on mobile, side drawer on all sizes
-- **UX enhancements (`ux.js`)** — self-contained IIFE add-on; observes DOM + localStorage, never touches app.js internals. Styles self-injected (`<style id="nqUxStyles">`, classes prefixed `nq-ux-`), re-decorates via MutationObserver + hashchange. Features:
-  - **Per-surah progress** — piggybacks on `nq:lastRead`; while on plain `#/surah/{id}`, mirrors max verse reached into `nq:progress:{id}` = `{ v, at }`.
-  - **Home card progress bars** — gold bar + "Read up to v.N of M" on surah cards with saved progress (total parsed from card text).
-  - **Resume pill** — on `#/surah/{id}` with progress ≥ v.2, floating pill deep-links to `#/surah/{id}/verse/{N}` (reuses smooth-scroll + gold flash). Dismissible per session (`nq:uxResumeHide:{id}` in sessionStorage).
-  - **Streak mini-calendar** — 7-day dot row appended to `#heroStreak` / `#drawerStreak`, read from `nq:readDays` (UTC ISO convention). Read-only.
-- **Service worker** — now `nq-v4`, precaches `ux.js`.
+- **UX enhancements (`ux.js`)** — self-contained IIFE add-on (Rounds 1–4); observes DOM + localStorage, never touches app.js internals. Styles self-injected (`<style id="nqUxStyles">`, classes prefixed `nq-ux-`), re-decorates via MutationObserver + hashchange. Features:
+  - **Per-surah progress** — piggybacks on `nq:lastRead`; mirrors into `nq:progress:{id}` = `{ v, best, done, at }`.
+  - **Reset-on-completion** — reaching the final verse increments `done`, records `best`, resets `v` for a fresh re-read pass.
+  - **Home card progress bars** — gold bar + "Read up to v.N of M" / "Completed ✓" / "Re-reading · v.N of M".
+  - **Resume pill** — floating "Continue (re-reading) at verse N ↓" pill; dismissible per session.
+  - **Streak mini-calendar** — 7-day dot row on `#heroStreak` / `#drawerStreak` from `nq:readDays`.
+  - **Urdu webfont + size slider** — Jameel Noori Nastaleeq via jsDelivr; size via `--nq-urdu-size` (18–44px).
+  - **Theme presets** — `--primary`/`--primary-2`/`--primary-soft`/`--accent` overrides with light+dark variants; `<meta theme-color>` sync.
+  - **PNG icon** — runtime swap of favicon/apple-touch-icon/brand-mark; manifest lists it any+maskable 512×512.
+- **Service worker** — `nq-v5`, precaches app shell including `ux.js`.
 
 ## Stack
 
@@ -33,8 +42,9 @@ Pure static files. No framework, no bundler, no dependencies.
 - `index.html` — markup and DOM shells
 - `styles.css` — all styles (theme tokens, layout, components, responsive)
 - `app.js` — all app logic (hash router, API, cache, audio, features)
+- `ux.js` — self-contained UX add-on (this project's enhancement layer)
 - `sw.js` — service worker (offline app shell + API cache)
-- `manifest.webmanifest` + `icon.svg` — PWA install
+- `manifest.webmanifest` + `app fav icon.png` + `icon.svg` — PWA install
 
 ## Data
 
@@ -43,11 +53,9 @@ Pure static files. No framework, no bundler, no dependencies.
 
 ## Deploy
 
-Static site — deploy anywhere. Two easy paths:
+Static site — deploy anywhere. Current host: **Vercel** (auto-deploys on merge to `main`).
 
-**Netlify Drop** — drag the folder onto <https://app.netlify.com/drop>.
-
-**Netlify from GitHub** — connect this repo, no build command, publish directory `.` (root).
+**Vercel from GitHub** — import the repo at <https://vercel.com/new>, no build command, output directory `.` (root). Every push to `main` deploys automatically.
 
 ## License
 
