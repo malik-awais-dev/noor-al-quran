@@ -2,10 +2,10 @@
 // Strategy:
 //   - App shell (HTML/CSS/JS/icon/manifest): cache-first, updated in background
 //   - Al-Quran Cloud API: network-first, fall back to cache when offline
-//   - Google Fonts (CSS + font files): cache-first with runtime cache
+//   - Google Fonts + jsDelivr (Urdu webfont): cache-first with runtime cache
 //   - Audio CDN: pass through (files are large; browser handles its own cache)
 
-const VERSION = 'nq-v4';
+const VERSION = 'nq-v5';
 const SHELL   = 'nq-shell-'   + VERSION;
 const RUNTIME = 'nq-runtime-' + VERSION;
 
@@ -51,8 +51,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Google Fonts (CSS + files) — cache first, runtime cached
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+  // Google Fonts + jsDelivr (Jameel Noori Nastaleeq webfont) — cache first
+  if (url.hostname === 'fonts.googleapis.com' ||
+      url.hostname === 'fonts.gstatic.com' ||
+      url.hostname === 'cdn.jsdelivr.net') {
     event.respondWith(cacheFirst(req, RUNTIME));
     return;
   }
