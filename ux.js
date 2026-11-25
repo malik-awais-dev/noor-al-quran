@@ -10,11 +10,12 @@
 //   - Icon: "app fav icon.png" replaces favicon, apple-touch-icon, and the
 //     header brand-mark (as an <img>); manifest lists it any+maskable 512x512.
 //   - Picker = color swatches in the drawer Reading section; saved to nq:palette.
-// Round 5: full-palette themes. Green (default) + ColorHunt palettes Indigo, Rose,
+// Round 5: full-palette themes. ColorHunt palettes Indigo (default), Green, Rose,
 //   Plum. Each preset drives the ENTIRE color system (bg, surface, surface-2, ink,
 //   muted, primary, primary-2, primary-soft, accent, border) in light AND dark mode.
 // Round 5b: legacy Round-4 ids (pink/purple/teal/blue/amber) migrate to the nearest
-//   Round-5 theme instead of falling back to Green; resume pill fits small screens.
+//   Round-5 theme instead of falling back to Green; resume pill fits small screens;
+//   Indigo is the default theme for users with no saved palette.
 
 (function () {
   'use strict';
@@ -75,7 +76,8 @@
       dark:  { bg:'#231a24', surface:'#2e2230', surface2:'#3a2c3c', ink:'#f1e8ee', muted:'#b0a3b3',
                primary:'#af8eb1', primary2:'#c3a6c5', soft:'#402f42', accent:'#b7d0cc', border:'#443449' } }
   };
-  var DEFAULT_PALETTE = 'green'; // values mirror styles.css defaults exactly
+  // Round 5b: Indigo is the default for users with no saved palette.
+  var DEFAULT_PALETTE = 'indigo';
 
   // Round 5b: legacy Round-4 single-hue ids -> nearest Round-5 theme
   var LEGACY_PALETTE_MAP = {
