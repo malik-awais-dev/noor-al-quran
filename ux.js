@@ -16,7 +16,9 @@
 // Round 5b: legacy Round-4 ids (pink/purple/teal/blue/amber) migrate to the nearest
 //   Round-5 theme instead of falling back to Green; resume pill fits small screens;
 //   Indigo is the default theme for users with no saved palette; continue-card wraps
-//   neatly on mobile; surah-card meta trimmed to the verse count only.
+//   neatly on mobile; surah-card meta trimmed to the verse count only; brand-mark
+//   background + border-radius removed (icon shows as-is); verse-translation
+//   line-height tightened (non-Urdu 1.5, Urdu Nastaleeq 2 - no clipping).
 
 (function () {
   'use strict';
@@ -247,6 +249,9 @@
   // Resume pill is capped to viewport width with an ellipsis so long labels
   // ("Continue re-reading at verse 286") never break the layout on phones.
   // Continue card wraps on mobile: icon + text on the first row, actions below.
+  // brand-mark: background + border-radius stripped so the PNG icon shows as-is.
+  // Verse translation line-height: tight (1.5) for non-Urdu, 2 for Urdu Nastaleeq
+  // (below 2 the tall Urdu strokes clip/overlap).
   var CSS = [
     '.nq-ux-prog { margin-top: 6px; width: 100%; }',
     '.nq-ux-prog-bar {',
@@ -291,6 +296,11 @@
     '@media (max-width: 700px) {',
     '  .verse-translation[data-rtl="true"] { font-size: var(--nq-urdu-size, 24px); }',
     '}',
+    '/* Round 5b: verse line-height - tight for non-Urdu, readable for Nastaleeq */',
+    'p.verse-translation:not([data-rtl="true"]) { line-height: 1.5 !important; }',
+    '.verse-translation[data-rtl="true"] { line-height: 2 !important; }',
+    '/* Round 5b: brand-mark - no background circle, no rounding (PNG icon as-is) */',
+    '.brand-mark { border-radius: 0 !important; background: transparent !important; }',
     '.nq-ux-swatches { margin-top: 14px; }',
     '.nq-ux-swatches-label { display: block; font-size: 11px; color: var(--muted); letter-spacing: .5px; margin-bottom: 6px; }',
     '.nq-ux-swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }',
